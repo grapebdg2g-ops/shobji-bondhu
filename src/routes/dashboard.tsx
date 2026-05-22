@@ -27,10 +27,10 @@ function Dashboard() {
   }, [navigate]);
 
   const cards = [
-    { label: "বাজার দর", icon: TrendingUp, bg: "bg-[#2D6A4F]", fg: "text-white" },
-    { label: "বিনিময়", icon: Repeat2, bg: "bg-[#1E5F8E]", fg: "text-white" },
-    { label: "রোগ শনাক্ত", icon: Bug, bg: "bg-[#E07A2C]", fg: "text-white" },
-    { label: "সংবাদ ফিড", icon: Newspaper, bg: "bg-[#0E8B8B]", fg: "text-white" },
+    { label: "বাজার দর", icon: TrendingUp, bg: "bg-[#2D6A4F]", fg: "text-white", to: "/prices" as const },
+    { label: "বিনিময়", icon: Repeat2, bg: "bg-[#1E5F8E]", fg: "text-white", to: "/dashboard" as const },
+    { label: "রোগ শনাক্ত", icon: Bug, bg: "bg-[#E07A2C]", fg: "text-white", to: "/dashboard" as const },
+    { label: "সংবাদ ফিড", icon: Newspaper, bg: "bg-[#0E8B8B]", fg: "text-white", to: "/dashboard" as const },
   ];
 
   return (
@@ -54,14 +54,15 @@ function Dashboard() {
 
       <section className="px-5 -mt-10">
         <div className="grid grid-cols-2 gap-3">
-          {cards.map(({ label, icon: Icon, bg, fg }) => (
-            <button
+          {cards.map(({ label, icon: Icon, bg, fg, to }) => (
+            <Link
               key={label}
+              to={to}
               className={`${bg} ${fg} aspect-square rounded-2xl p-4 flex flex-col justify-between shadow-[var(--shadow-card)] active:scale-95 transition`}
             >
               <Icon className="h-9 w-9" strokeWidth={2.2} />
               <span className="text-lg font-bold text-left leading-tight">{label}</span>
-            </button>
+            </Link>
           ))}
         </div>
       </section>
@@ -77,7 +78,7 @@ function Dashboard() {
         <div className="grid grid-cols-4 max-w-md mx-auto">
           {[
             { label: "হোম", icon: Home, to: "/dashboard", active: true },
-            { label: "দর", icon: BarChart3, to: "/dashboard", active: false },
+            { label: "দর", icon: BarChart3, to: "/prices", active: false },
             { label: "বিনিময়", icon: Repeat2, to: "/dashboard", active: false },
             { label: "প্রোফাইল", icon: User, to: "/dashboard", active: false },
           ].map(({ label, icon: Icon, to, active }) => (
