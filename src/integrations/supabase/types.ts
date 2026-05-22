@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      prices: {
+        Row: {
+          category: string
+          created_at: string
+          district: string
+          id: string
+          market_name: string
+          previous_price: number | null
+          price: number
+          product_name: string
+          unit: string
+          upazila: string | null
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          district: string
+          id?: string
+          market_name: string
+          previous_price?: number | null
+          price: number
+          product_name: string
+          unit?: string
+          upazila?: string | null
+          user_id: string
+          user_name?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          district?: string
+          id?: string
+          market_name?: string
+          previous_price?: number | null
+          price?: number
+          product_name?: string
+          unit?: string
+          upazila?: string | null
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
