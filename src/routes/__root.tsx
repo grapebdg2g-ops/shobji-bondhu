@@ -77,11 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "কৃষিবন্ধু — কৃষকের বিশ্বস্ত সঙ্গী" },
       { name: "description", content: "বাংলাদেশের কৃষকদের জন্য সামাজিক প্ল্যাটফর্ম — বাজার দর, বিনিময়, রোগ শনাক্ত ও সংবাদ।" },
       { name: "author", content: "KrishiBondhu" },
-      { property: "og:title", content: "কৃষিবন্ধু" },
-      { property: "og:description", content: "কৃষকের বিশ্বস্ত সঙ্গী" },
+      { property: "og:title", content: "কৃষিবন্ধু — কৃষকের বিশ্বস্ত সঙ্গী" },
+      { property: "og:description", content: "বাংলাদেশের কৃষকদের জন্য সামাজিক প্ল্যাটফর্ম — বাজার দর, বিনিময়, রোগ শনাক্ত ও সংবাদ।" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "কৃষিবন্ধু — কৃষকের বিশ্বস্ত সঙ্গী" },
+      { name: "twitter:description", content: "বাংলাদেশের কৃষকদের জন্য সামাজিক প্ল্যাটফর্ম — বাজার দর, বিনিময়, রোগ শনাক্ত ও সংবাদ।" },
     ],
     links: [
       {
