@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      exchanges: {
+        Row: {
+          created_at: string
+          description: string | null
+          district: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_free: boolean
+          price: number | null
+          title: string
+          type: string
+          unit: string | null
+          upazila: string | null
+          user_id: string
+          user_name: string
+          user_phone: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          district: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_free?: boolean
+          price?: number | null
+          title: string
+          type?: string
+          unit?: string | null
+          upazila?: string | null
+          user_id: string
+          user_name?: string
+          user_phone?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          district?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_free?: boolean
+          price?: number | null
+          title?: string
+          type?: string
+          unit?: string | null
+          upazila?: string | null
+          user_id?: string
+          user_name?: string
+          user_phone?: string | null
+        }
+        Relationships: []
+      }
       prices: {
         Row: {
           category: string
