@@ -1,12 +1,18 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft, Plus, MapPin, TrendingUp, TrendingDown,
-  Home, BarChart3, Repeat2, User, X,
+  Home, BarChart3, Repeat2, User, Sprout,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DISTRICTS } from "@/lib/bd-data";
 import { toast } from "sonner";
+import { useUser } from "@/contexts/user-context";
+import { BengaliButton } from "@/components/krishi/bengali-button";
+import { ErrorMessage } from "@/components/krishi/error-message";
+import { EmptyState } from "@/components/krishi/empty-state";
+import { BottomSheet } from "@/components/krishi/bottom-sheet";
+import { PriceCardSkeleton } from "@/components/krishi/price-card-skeleton";
 
 export const Route = createFileRoute("/prices")({
   component: PricesPage,
@@ -51,44 +57,42 @@ function timeAgo(iso: string) {
 
 function PricesPage() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<{ name: string; district: string } | null>(null);
+  const { user, loading: userLoading } = useUser();
   const [district, setDistrict] = useState<string>("");
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("সব");
   const [prices, setPrices] = useState<Price[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
-  // load profile
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) return navigate({ to: "/login" });
-      const { data: p } = await supabase
-        .from("profiles").select("name, district")
-        .eq("id", data.session.user.id).maybeSingle();
-      if (!p?.district) return navigate({ to: "/register" });
-      setProfile({ name: p.name, district: p.district });
-      setDistrict(p.district);
-    })();
-  }, [navigate]);
+    if (userLoading) return;
+    if (!user) { navigate({ to: "/login" }); return; }
+    if (!user.district) { navigate({ to: "/register" }); return; }
+    if (!district) setDistrict(user.district);
+  }, [user, userLoading, district, navigate]);
 
-  // load prices + realtime
+  const loadPrices = useCallback(async (d: string) => {
+    setLoading(true);
+    setError(null);
+    const { data, error: e } = await supabase
+      .from("prices")
+      .select("*")
+      .eq("district", d)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (e) {
+      setError("সংযোগ সমস্যা, আবার চেষ্টা করুন");
+      setPrices([]);
+    } else {
+      setPrices((data as Price[]) ?? []);
+    }
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     if (!district) return;
-    setLoading(true);
-    let active = true;
-    (async () => {
-      const { data, error } = await supabase
-        .from("prices")
-        .select("*")
-        .eq("district", district)
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (!active) return;
-      if (error) toast.error("দাম লোড করা যায়নি");
-      setPrices((data as Price[]) ?? []);
-      setLoading(false);
-    })();
+    loadPrices(district);
 
     const ch = supabase
       .channel(`prices-${district}`)
@@ -102,10 +106,9 @@ function PricesPage() {
       .subscribe();
 
     return () => {
-      active = false;
       supabase.removeChannel(ch);
     };
-  }, [district]);
+  }, [district, loadPrices]);
 
   const filtered = useMemo(() => {
     if (category === "সব") return prices;
@@ -168,12 +171,25 @@ function PricesPage() {
       {/* Price list */}
       <section className="px-5 mt-4 space-y-3">
         {loading ? (
-          <p className="text-center text-muted-foreground py-10">লোড হচ্ছে...</p>
+          <>
+            <PriceCardSkeleton />
+            <PriceCardSkeleton />
+            <PriceCardSkeleton />
+            <PriceCardSkeleton />
+          </>
+        ) : error ? (
+          <ErrorMessage onRetry={() => loadPrices(district)} />
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl bg-card border border-border p-8 text-center">
-            <p className="text-muted-foreground">কোনো দাম পাওয়া যায়নি।</p>
-            <p className="text-sm text-muted-foreground mt-1">প্রথম দাম যোগ করুন!</p>
-          </div>
+          <EmptyState
+            icon={<Sprout className="h-8 w-8" />}
+            title="কোনো দাম পাওয়া যায়নি"
+            description="এই জেলায় এখনো কোনো দাম যোগ হয়নি।"
+            action={
+              <BengaliButton variant="warning" size="md" onClick={() => setOpen(true)} leftIcon={<Plus className="h-5 w-5" />}>
+                প্রথম দাম যোগ করুন
+              </BengaliButton>
+            }
+          />
         ) : (
           filtered.map((p) => {
             const diff = p.previous_price != null ? p.price - p.previous_price : 0;
@@ -233,9 +249,10 @@ function PricesPage() {
       </nav>
 
       {/* Add price sheet */}
-      {open && profile && (
+      {user && (
         <AddPriceSheet
-          profile={profile}
+          open={open}
+          profile={{ id: user.id, name: user.name, district: user.district ?? "" }}
           defaultDistrict={district}
           onClose={() => setOpen(false)}
         />
@@ -245,9 +262,10 @@ function PricesPage() {
 }
 
 function AddPriceSheet({
-  profile, defaultDistrict, onClose,
+  open, profile, defaultDistrict, onClose,
 }: {
-  profile: { name: string; district: string };
+  open: boolean;
+  profile: { id: string; name: string; district: string };
   defaultDistrict: string;
   onClose: () => void;
 }) {
@@ -265,10 +283,6 @@ function AddPriceSheet({
       return;
     }
     setSubmitting(true);
-    const { data: sess } = await supabase.auth.getSession();
-    const uid = sess.session?.user.id;
-    if (!uid) { setSubmitting(false); return; }
-
     const { error } = await supabase.from("prices").insert({
       product_name: productName.trim(),
       price: Number(price),
@@ -276,12 +290,12 @@ function AddPriceSheet({
       market_name: marketName.trim(),
       district: defaultDistrict || profile.district,
       category,
-      user_id: uid,
+      user_id: profile.id,
       user_name: profile.name,
     });
     setSubmitting(false);
     if (error) {
-      toast.error("সংরক্ষণ ব্যর্থ");
+      toast.error("সংযোগ সমস্যা, আবার চেষ্টা করুন");
       return;
     }
     toast.success("দাম যোগ হয়েছে");
@@ -289,20 +303,8 @@ function AddPriceSheet({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50" />
-      <form
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={submit}
-        className="relative w-full bg-card rounded-t-3xl p-5 pb-8 max-h-[90vh] overflow-y-auto"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">নতুন দাম যোগ করুন</h2>
-          <button type="button" onClick={onClose} className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
+    <BottomSheet open={open} onClose={onClose} title="নতুন দাম যোগ করুন">
+      <form onSubmit={submit}>
         <div className="space-y-3">
           <Field label="পণ্যের নাম">
             <input
@@ -365,15 +367,11 @@ function AddPriceSheet({
           </Field>
         </div>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="mt-5 w-full bg-primary text-primary-foreground rounded-xl py-4 text-base font-bold active:scale-[0.99] transition disabled:opacity-60"
-        >
-          {submitting ? "সংরক্ষণ হচ্ছে..." : "দাম আপডেট করুন"}
-        </button>
+        <BengaliButton type="submit" fullWidth loading={submitting} className="mt-5">
+          দাম আপডেট করুন
+        </BengaliButton>
       </form>
-    </div>
+    </BottomSheet>
   );
 }
 

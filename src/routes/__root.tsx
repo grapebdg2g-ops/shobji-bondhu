@@ -10,6 +10,9 @@ import {
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
+import { UserProvider } from "@/contexts/user-context";
+import { OfflineBanner } from "@/components/krishi/offline-banner";
+import { AppErrorBoundary } from "@/components/krishi/app-error-boundary";
 
 function NotFoundComponent() {
   return (
@@ -117,8 +120,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <Toaster richColors position="top-center" />
+      <AppErrorBoundary>
+        <UserProvider>
+          <OfflineBanner />
+          <Outlet />
+          <Toaster richColors position="top-center" />
+        </UserProvider>
+      </AppErrorBoundary>
     </QueryClientProvider>
   );
 }
