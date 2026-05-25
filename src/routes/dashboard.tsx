@@ -28,7 +28,7 @@ function Dashboard() {
 
   const cards = [
     { label: "বাজার দর", icon: TrendingUp, bg: "bg-[#2D6A4F]", fg: "text-white", to: "/prices" as const },
-    { label: "বিনিময়", icon: Repeat2, bg: "bg-[#1E5F8E]", fg: "text-white", to: "/dashboard" as const },
+    { label: "বিনিময়", icon: Repeat2, bg: "bg-[#1E5F8E]", fg: "text-white", to: "/exchange" as const },
     { label: "রোগ শনাক্ত", icon: Bug, bg: "bg-[#E07A2C]", fg: "text-white", to: "/dashboard" as const },
     { label: "সংবাদ ফিড", icon: Newspaper, bg: "bg-[#0E8B8B]", fg: "text-white", to: "/dashboard" as const },
   ];
@@ -79,7 +79,7 @@ function Dashboard() {
           {[
             { label: "হোম", icon: Home, to: "/dashboard", active: true },
             { label: "দর", icon: BarChart3, to: "/prices", active: false },
-            { label: "বিনিময়", icon: Repeat2, to: "/dashboard", active: false },
+            { label: "বিনিময়", icon: Repeat2, to: "/exchange", active: false },
             { label: "প্রোফাইল", icon: User, to: "/dashboard", active: false },
           ].map(({ label, icon: Icon, to, active }) => (
             <Link key={label} to={to}
